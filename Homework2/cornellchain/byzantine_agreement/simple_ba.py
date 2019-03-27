@@ -57,7 +57,29 @@ class SimplePKIBA:
                 # proposal is new proposal that has just achieved threshold (m not in Sj)
                 # Pseudocode: then j adds m to its set Sj, signs m using its secret key skj, and multicasts...
 
-        return []
+        broadcast_votes = []
+        # Get all proposals with r votes
+        proposals = self.get_proposals_with_threshold(round)
+
+        # Traverse all proposals
+        for msg in proposals:
+            # Check if the proposal has not already added to accepted proposals
+            if msg not in self.s_i:
+
+                # Add msg to accepted proposals
+                self.s_i.append(msg)
+
+                # Add a node ID that voted for that message
+                self.votes[msg].add(config.node_id)
+
+                # Sign msg using its secret key and add signature
+                sig = util.sign_message(msg, config.SECRET_KEYS[config.node_id])
+                self.signatures[msg].append((config.node_id, sig))
+
+                broadcast_votes.append(msg)
+
+        return broadcast_votes
+        # return []
 
     def get_proposals_with_threshold(self, round):
         """ Gets proposals that have reached the threshold required by a given round.
@@ -73,8 +95,15 @@ class SimplePKIBA:
         """
         # Pseudocode: with signatures from r different players, including player s
 
-        # placeholder for (3.2)
-        return []
+        # placeholder for (3.1)
+        proposals = []
+        for msg, sig in self.votes.items():
+            # Check if proposals have achieved the threshold required by a given round.
+            if len(sig)>=round and self.sender in sig:
+                proposals.append(msg)
+
+        return proposals
+        # return []
 
     def broadcast_votes_for(self, round, votes):
         """ Broadcast votes on a proposal to all nodes; this happens once a proposal is added to s_i. """
@@ -119,7 +148,15 @@ class SimplePKIBA:
         # Pseudocode: (Output) Each player i outputs 0 if |Si| > 1 and otherwise outputs the unique element in Si.
 
         # placeholder for (3.3)
-        return []
+        if self.is_done() == True:
+            # Check if there is only one proposal
+            if len(self.s_i) == 1:
+                return self.s_i[0]
+            else:
+                return 0
+        
+        return None
+        # return []
 
     @run_async
     def run_protocol_loop(self):

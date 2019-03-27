@@ -23,10 +23,11 @@ def get_curr_round():
             int: The integer value of the current round.
     """
     global start_time, round_length
-    # Do not round intermediate arithmetic
 
-    # placeholder for (2.2)
-    return 0
+    if (start_time == None): return None
+    current_time = time.time()
+
+    return int((current_time - start_time)/round_length)
 
 def should_send():
     """ Determine whether a node should be sending messages when queried.
@@ -38,6 +39,12 @@ def should_send():
     # WARNING: this needs to be audited for security before production use!
     # specifically w.r.t. timing assumptions at the boundaries of the synchrony assumption
 
+    if (start_time == None): return None
+    blockchain_time = time.time() - start_time
+    round_time = round_length * get_curr_round()
+    if ((round_time+(synchrony_assumption)) <= blockchain_time
+            <= (round_time+(2*synchrony_assumption))): return True
+
     # placeholder for (2.3)
     return False
 
@@ -46,6 +53,8 @@ def receive_start_message():
         logging to stdout (see log_synchrony).
     """
     global start_time
+    start_time = time.time()
+    log_synchrony()
 
     # placeholder for (2.1)
 
